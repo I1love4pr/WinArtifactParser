@@ -27,9 +27,9 @@ $allInterfacesData = foreach ($interface in $interfaces) {
     [PSCustomObject]@{
         Interface = $interface.PSChildName
         MTU = if ($null -ne $params.MTU) { $params.MTU } else { "def" }
-        TCPD = if ($null -ne $params.TCPNoDelay) { $params.TCPNoDelay } else { "def" }
-        TAP = if ($null -ne $params.TcpAckFrequency ) { $params.TcpAckFrequency } else { "def" } 
-        TCPDAT = if ($null -ne $params.TcpDelAckTicks ) { $params.TcpDelAckTicks } else { "def" }
+        TCPNoDelay = if ($null -ne $params.TCPNoDelay) { $params.TCPNoDelay } else { "def" }
+        TcpAckFrequency = if ($null -ne $params.TcpAckFrequency ) { $params.TcpAckFrequency } else { "def" } 
+        TcpDelAckTicks = if ($null -ne $params.TcpDelAckTicks ) { $params.TcpDelAckTicks } else { "def" }
         TcpWindowSize = if ($null -ne $params.TcpWindowSize ) { $params.TcpWindowSize } else { "def" } 
     }
 }

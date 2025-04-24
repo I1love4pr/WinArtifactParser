@@ -76,9 +76,7 @@ Catch{
 }
 
 $rpath = @("HKLM:\SYSTEM\CurrentControlSet\Services\bam\","HKLM:\SYSTEM\CurrentControlSet\Services\bam\state\")
-$UserTime = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation").TimeZoneKeyName
 $UserBias = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation").ActiveTimeBias
-$UserDay = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation").DaylightBias
 
 $Bam = Foreach ($Sid in $Users){$u++
     
@@ -98,11 +96,10 @@ $Bam = Foreach ($Sid in $Users){$u++
             If($key.length -eq 24){
                 $Hex=[System.BitConverter]::ToString($key[7..0]) -replace "-",""
 			    $Bias = -([convert]::ToInt32([Convert]::ToString($UserBias,2),2))
-			    $Day = -([convert]::ToInt32([Convert]::ToString($UserDay,2),2)) 
-			    $TimeUser = (Get-Date ([DateTime]::FromFileTimeUtc([Convert]::ToInt64($Hex, 16))).addminutes($Bias) -Format "yyyy-MM-dd HH:mm:ss") 
+			    $TimeUser = (Get-Date ([DateTime]::FromFileTimeUtc([Convert]::ToInt64($Hex, 16))).addminutes($Bias) -Format "MM-dd HH:mm:ss") 
 			    $d = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {((split-path -path $item).Remove(23)).trimstart("\Device\HarddiskVolume")} else {$d = ""}
-			    $f = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
+			    $file = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {Split-path -leaf ($item).TrimStart()} else {$item}	
 			    $cp = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {($item).Remove(1,23)} else {$cp = ""}
@@ -112,10 +109,10 @@ $Bam = Foreach ($Sid in $Users){$u++
 			    {Get-Signature -FilePath $path} else {$sig = ""}				
                 [PSCustomObject]@{
 						    'Last Execution Time' = $TimeUser
-						     Application = 	$f
+						     Application = 	$file
 						     Path =  		$path
                              Signature =    $Sig
 						     User =         $User
                              }}}}}
 
-$Bam | Out-GridView -PassThru -Title "BAM key entries $($Bam.count)  - User TimeZone: ($UserTime) -> ActiveBias: ( $Bias) - DayLightTime: ($Day)"
+$Bam | Out-GridView -PassThru -Title "gemakfy | files: $($Bam.count)"
