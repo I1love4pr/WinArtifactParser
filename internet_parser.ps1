@@ -16,22 +16,76 @@ Write-Host -ForegroundColor Yellow @"
 Write-Host -ForegroundColor White "created by gemakfy"
 
 Start-Sleep -Seconds 1
+Clear-Host
 
 $interfaces = Get-ChildItem -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" | 
               Sort-Object PSChildName
 
+# Default values
+$referenceValues = @{
+    MTU = 1500
+    TCPNoDelay = 1
+    TcpAckFrequency = 1
+    TcpDelAckTicks = 0
+    TcpWindowSize = 64240
+}
+
 $allInterfacesData = foreach ($interface in $interfaces) {
     $params = Get-ItemProperty -Path $interface.PSPath
     
-    # Формируем объект с параметрами
     [PSCustomObject]@{
         Interface = $interface.PSChildName
         MTU = if ($null -ne $params.MTU) { $params.MTU } else { "def" }
         TCPNoDelay = if ($null -ne $params.TCPNoDelay) { $params.TCPNoDelay } else { "def" }
-        TcpAckFrequency = if ($null -ne $params.TcpAckFrequency ) { $params.TcpAckFrequency } else { "def" } 
-        TcpDelAckTicks = if ($null -ne $params.TcpDelAckTicks ) { $params.TcpDelAckTicks } else { "def" }
-        TcpWindowSize = if ($null -ne $params.TcpWindowSize ) { $params.TcpWindowSize } else { "def" } 
+        TcpAckFrequency = if ($null -ne $params.TcpAckFrequency) { $params.TcpAckFrequency } else { "def" } 
+        TcpDelAckTicks = if ($null -ne $params.TcpDelAckTicks) { $params.TcpDelAckTicks } else { "def" }
+        TcpWindowSize = if ($null -ne $params.TcpWindowSize) { $params.TcpWindowSize } else { "def" } 
     }
 }
 
-$allInterfacesData | Sort-Object MTU | Format-Table -AutoSize -Wrap -Property *
+function Write-ColoredTable {
+    param($data)
+    
+    # Заголовки таблицы
+    Write-Host ("{0,-38} {1,-8} {2,-12} {3,-16} {4,-14} {5,-14}" -f `
+        "Interface", "MTU", "TCPNoDelay", "TcpAckFrequency", "TcpDelAckTicks", "TcpWindowSize")
+    
+    foreach ($item in $data) {
+        Write-Host ("{0,-38} " -f $item.Interface) -NoNewline
+        
+        $paramsToCheck = @('MTU', 'TCPNoDelay', 'TcpAckFrequency', 'TcpDelAckTicks', 'TcpWindowSize')
+        foreach ($param in $paramsToCheck) {
+            $value = $item.$param
+            
+            $width = switch ($param) {
+                'MTU' { 8 }
+                'TCPNoDelay' { 12 }
+                'TcpAckFrequency' { 16 }
+                default { 14 }
+            }
+            
+            if ($value -eq "def") {
+                Write-Host ("{0,-$width} " -f $value) -NoNewline -ForegroundColor Yellow
+            }
+            elseif ($value -eq $referenceValues[$param]) {
+                Write-Host ("{0,-$width} " -f $value) -NoNewline -ForegroundColor Green
+            }
+            else {
+                Write-Host ("{0,-$width} " -f $value) -NoNewline -ForegroundColor Red
+            }
+        }
+        Write-Host ""
+    }
+}
+
+# results 
+Write-ColoredTable -data ($allInterfacesData | Sort-Object MTU)
+
+# legend colors
+Write-Host "`nColor legend:" -ForegroundColor Cyan
+Write-Host "  Green" -NoNewline -ForegroundColor Green
+Write-Host " - Default value"
+Write-Host "  Red" -NoNewline -ForegroundColor Red
+Write-Host " - Non-standard value"
+Write-Host "  Yellow" -NoNewline -ForegroundColor Yellow
+Write-Host " - Default value (not set in registry)"

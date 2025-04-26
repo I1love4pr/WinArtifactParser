@@ -104,7 +104,7 @@ $Bam = Foreach ($Sid in $Users){$u++
 			    $cp = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {($item).Remove(1,23)} else {$cp = ""}
 			    $path = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
-			    {Join-Path -Path "C:" -ChildPath $cp} else {$path = ""}			
+			    {Join-Path -Path "C:" -ChildPath $cp} else {$path = ""}
 			    $sig = if((((split-path -path $item) | ConvertFrom-String -Delimiter "\\").P3)-match '\d{1}')
 			    {Get-Signature -FilePath $path} else {$sig = ""}				
                 [PSCustomObject]@{
